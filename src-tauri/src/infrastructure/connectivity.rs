@@ -11,6 +11,7 @@ use windows::Win32::{
     Networking::WinSock::*,
 };
 
+#[cfg(test)]
 const PUBLIC_TARGET: Ipv4Addr = Ipv4Addr::new(223, 5, 5, 5);
 #[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -18,6 +19,7 @@ pub struct ProbeRequest {
     pub internal_id: String,
     pub internal_gateway: String,
     pub external_id: String,
+    pub external_target: String,
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -67,7 +69,7 @@ fn socket(ip: Ipv4Addr) -> SOCKADDR_INET {
     a.sin_addr.S_un.S_addr = u32::from_ne_bytes(ip.octets());
     SOCKADDR_INET { Ipv4: a }
 }
-fn target(text: &str) -> Option<Ipv4Addr> {
+pub(crate) fn target(text: &str) -> Option<Ipv4Addr> {
     let ip = text.parse::<Ipv4Addr>().ok()?;
     (!ip.is_unspecified() && !ip.is_multicast() && !ip.is_broadcast() && !ip.is_loopback())
         .then_some(ip)
@@ -166,6 +168,7 @@ pub fn check(request: ProbeRequest) -> AppResult<Connectivity> {
     if request.internal_id.len() > 32
         || request.external_id.len() > 32
         || request.internal_gateway.len() > 64
+        || target(&request.external_target).is_none()
     {
         return Err("检测参数无效".into());
     }
@@ -173,7 +176,7 @@ pub fn check(request: ProbeRequest) -> AppResult<Connectivity> {
     std::thread::scope(|scope| {
         let internal =
             scope.spawn(|| probe(&adapters, &request.internal_id, &request.internal_gateway));
-        let external = probe(&adapters, &request.external_id, &PUBLIC_TARGET.to_string());
+        let external = probe(&adapters, &request.external_id, &request.external_target);
         Ok(Connectivity {
             internal: internal.join().map_err(|_| "内网检测失败")?,
             external,
@@ -224,7 +227,8 @@ mod tests {
         assert!(check(ProbeRequest {
             internal_id: "1".repeat(33),
             internal_gateway: String::new(),
-            external_id: String::new()
+            external_id: String::new(),
+            external_target: "223.5.5.5".into()
         })
         .is_err());
     }

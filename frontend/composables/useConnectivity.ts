@@ -15,7 +15,7 @@ const empty = (target: string): ProbeResult => ({
 export function useConnectivity(request: () => ProbeRequest) {
   const report = ref<Connectivity>({
     internal: empty(""),
-    external: empty("223.5.5.5"),
+    external: empty(request().externalTarget || "223.5.5.5"),
   });
   const history = ref<{ internal: number | null; external: number | null }[]>(
     [],
@@ -34,7 +34,7 @@ export function useConnectivity(request: () => ProbeRequest) {
       (typeof document !== "undefined" && document.hidden)
     )
       return;
-    const input = { ...request() },
+    const input = { externalTarget: "223.5.5.5", ...request() },
       started = key.value;
     if (!input.internalId && !input.externalId) return;
     probing.value = true;
@@ -66,7 +66,7 @@ export function useConnectivity(request: () => ProbeRequest) {
           status: input.internalId ? "error" : "unconfigured",
         },
         external: {
-          ...empty("223.5.5.5"),
+          ...empty(request().externalTarget || "223.5.5.5"),
           status: input.externalId ? "error" : "unconfigured",
         },
       };
@@ -84,7 +84,7 @@ export function useConnectivity(request: () => ProbeRequest) {
     failure.value = "";
     report.value = {
       internal: empty(request().internalGateway),
-      external: empty("223.5.5.5"),
+      external: empty(request().externalTarget || "223.5.5.5"),
     };
     if (debounce) clearTimeout(debounce);
     debounce = setTimeout(() => {

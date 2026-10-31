@@ -20,6 +20,7 @@ const props = defineProps<{
   adapters: Adapter[];
   label: string;
   disabled?: boolean;
+  offlineName?: string;
 }>();
 const emit = defineEmits<{ "update:modelValue": [value: string] }>();
 const selected = computed(() =>
@@ -33,12 +34,21 @@ const selected = computed(() =>
     @update:model-value="(value) => emit('update:modelValue', String(value))"
   >
     <SelectTrigger class="select-trigger" :aria-label="label">
-      <SelectValue :placeholder="t('chooseAdapter')" class="selected-value">
+      <SelectValue
+        :placeholder="
+          modelValue
+            ? `${offlineName || modelValue} · ${t('adapterOffline')}`
+            : t('chooseAdapter')
+        "
+        class="selected-value"
+      >
         <span v-if="selected" class="adapter-label"
           ><span class="adapter-name">{{ selected.name }}</span
           ><span class="option-address">{{
             selected.addresses[0]?.split("/")[0]
           }}</span></span
+        ><span v-else-if="modelValue" class="adapter-offline"
+          >{{ offlineName || modelValue }} · {{ t("adapterOffline") }}</span
         > </SelectValue
       ><SelectIcon><ChevronDown :size="16" /></SelectIcon>
     </SelectTrigger>

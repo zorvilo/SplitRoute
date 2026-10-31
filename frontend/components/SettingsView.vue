@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { notify } from "../notifications";
+import { ref, watch } from "vue";
 import { isTauri } from "@tauri-apps/api/core";
 import {
   Sun,
@@ -15,15 +16,11 @@ import {
   ArrowRightLeft,
   ExternalLink,
   RefreshCw,
-  Download,
-  CircleCheck,
-  CircleAlert,
 } from "lucide-vue-next";
 import {
   preferences,
   settingsBusy,
   settingsError,
-  settingsSaved,
   updatePreferences,
 } from "../composables/usePreferences";
 import { api, type UpdateInfo } from "../api";
@@ -33,6 +30,33 @@ const showStar = ref(true);
 const checking = ref(false),
   update = ref<UpdateInfo | null>(null),
   updateError = ref("");
+const customInternal = ref(!!preferences.value.internalProbeTarget);
+const internalTarget = ref(preferences.value.internalProbeTarget);
+const externalTarget = ref(preferences.value.externalProbeTarget);
+watch(preferences, (p) => {
+  customInternal.value = !!p.internalProbeTarget;
+  internalTarget.value = p.internalProbeTarget;
+  externalTarget.value = p.externalProbeTarget;
+});
+function saveTarget(
+  field: "internalProbeTarget" | "externalProbeTarget",
+  text: string,
+) {
+  const value = text.trim();
+  const parts = value.split(".");
+  const valid =
+    parts.length === 4 &&
+    parts.every((p) => /^(0|[1-9]\d{0,2})$/.test(p) && Number(p) <= 255) &&
+    Number(parts[0]) > 0 &&
+    Number(parts[0]) < 224 &&
+    Number(parts[0]) !== 127;
+  if (!(field === "internalProbeTarget" && !value) && !valid) {
+    settingsError.value = t("invalidProbeIp");
+    notify(settingsError.value, "error");
+    return;
+  }
+  void updatePreferences({ [field]: value });
+}
 const languages: [Language, string][] = [
   ["zh-CN", "简体中文"],
   ["zh-TW", "繁體中文"],
@@ -47,6 +71,7 @@ async function link(
     await api.openLink(target);
   } catch (e) {
     updateError.value = String(e);
+    notify(updateError.value, "error");
   }
 }
 async function check() {
@@ -56,8 +81,23 @@ async function check() {
   try {
     if (!isTauri()) throw new Error(t("preview"));
     update.value = await api.checkUpdate();
+    notify(
+      update.value.available
+        ? t("newVersion", { version: update.value.latest })
+        : t(update.value.published ? "upToDate" : "noRelease"),
+      update.value.available ? "info" : "success",
+      update.value.available
+        ? {
+            label: t("download"),
+            run: () => {
+              void link("download");
+            },
+          }
+        : undefined,
+    );
   } catch (e) {
     updateError.value = String(e);
+    notify(updateError.value, "error");
   } finally {
     checking.value = false;
   }
@@ -156,18 +196,62 @@ async function check() {
         </button>
       </div>
     </div>
+    <h2 class="settings-section-title">
+      <Globe :size="16" />{{ t("probeSettings") }}
+    </h2>
+    <div class="settings-group probe-settings">
+      <div class="setting-section">
+        <div class="setting-copy">
+          <h3>{{ t("internalProbe") }}</h3>
+          <p>{{ t("probeHelp") }}</p>
+        </div>
+        <div class="probe-fields">
+          <select
+            :aria-label="t('internalProbeMode')"
+            :disabled="settingsBusy"
+            :value="customInternal ? 'custom' : 'auto'"
+            @change="
+              ($event.target as HTMLSelectElement).value === 'auto'
+                ? ((customInternal = false),
+                  updatePreferences({ internalProbeTarget: '' }))
+                : (customInternal = true)
+            "
+          >
+            <option value="auto">{{ t("gatewayProbe") }}</option>
+            <option value="custom">{{ t("customProbe") }}</option>
+          </select>
+          <input
+            v-if="customInternal"
+            v-model="internalTarget"
+            :aria-label="t('internalProbe')"
+            :disabled="settingsBusy"
+            placeholder="10.0.0.1"
+            @change="saveTarget('internalProbeTarget', internalTarget)"
+          />
+        </div>
+      </div>
+      <div class="setting-section">
+        <div class="setting-copy">
+          <h3>{{ t("externalProbe") }}</h3>
+          <p>{{ t("probeHelp") }}</p>
+        </div>
+        <div class="probe-fields">
+          <input
+            v-model="externalTarget"
+            :aria-label="t('externalProbe')"
+            :disabled="settingsBusy"
+            @change="saveTarget('externalProbeTarget', externalTarget)"
+          /><button
+            class="button secondary"
+            :disabled="settingsBusy"
+            @click="updatePreferences({ externalProbeTarget: '223.5.5.5' })"
+          >
+            {{ t("resetProbe") }}
+          </button>
+        </div>
+      </div>
+    </div>
     <p v-if="!isTauri()" class="settings-help">{{ t("previewSettings") }}</p>
-    <p
-      class="settings-result"
-      :class="{ error: settingsError }"
-      role="status"
-      aria-live="polite"
-    >
-      {{
-        settingsError ||
-        (settingsBusy ? t("saving") : settingsSaved ? t("saved") : "")
-      }}
-    </p>
   </section>
   <section v-else class="settings-body">
     <div class="about-card">
@@ -227,38 +311,4 @@ async function check() {
       </div>
     </dl>
   </section>
-  <Teleport to="body">
-    <div
-      v-if="update || updateError"
-      class="update-toast"
-      role="status"
-      aria-live="polite"
-    >
-      <CircleAlert v-if="updateError" :size="16" class="toast-error" />
-      <CircleCheck v-else :size="16" class="toast-success" />
-      <span>{{
-        updateError ||
-        (update?.available
-          ? t("newVersion", { version: update.latest })
-          : t(update?.published ? "upToDate" : "noRelease"))
-      }}</span>
-      <button
-        v-if="update?.available"
-        class="button primary"
-        @click="link('download')"
-      >
-        <Download :size="14" />{{ t("download") }}
-      </button>
-      <button
-        class="toast-close"
-        :aria-label="t('dismissNotice')"
-        @click="
-          update = null;
-          updateError = '';
-        "
-      >
-        <X :size="12" />
-      </button>
-    </div>
-  </Teleport>
 </template>

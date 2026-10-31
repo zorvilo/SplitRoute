@@ -22,6 +22,7 @@ export interface Config {
   cidr: string;
 }
 export interface Snapshot {
+  savedAdapters?: Adapter[];
   adapters: Adapter[];
   routes: Route[];
   pending: boolean;
@@ -34,6 +35,8 @@ export interface Preferences {
   theme: "light" | "dark" | "system";
   closeToTray: boolean;
   autoStart: boolean;
+  internalProbeTarget: string;
+  externalProbeTarget: string;
 }
 export interface UpdateInfo {
   available: boolean;
@@ -41,6 +44,7 @@ export interface UpdateInfo {
   published: boolean;
 }
 export interface ProbeRequest {
+  externalTarget?: string;
   internalId: string;
   internalGateway: string;
   externalId: string;
@@ -63,18 +67,35 @@ export interface Connectivity {
   internal: ProbeResult;
   external: ProbeResult;
 }
+export const adminRequired = new EventTarget();
+async function privilegedInvoke<T>(
+  command: string,
+  args: Record<string, unknown>,
+): Promise<T> {
+  try {
+    return await invoke<T>(command, args);
+  } catch (error) {
+    if (String(error) === "ADMIN_REQUIRED") {
+      adminRequired.dispatchEvent(new Event("required"));
+      throw new Error(t("adminRequired"));
+    }
+    throw error;
+  }
+}
 export const api = {
+  restartAsAdmin: (config: Config | null) =>
+    invoke<void>("restart_as_admin", { config }),
   probeConnectivity: (request: ProbeRequest) =>
     isTauri()
       ? invoke<Connectivity>("probe_connectivity", { request })
       : Promise.reject(t("preview")),
   snapshot: () =>
     isTauri() ? invoke<Snapshot>("snapshot") : Promise.reject(t("preview")),
-  enable: (config: Config) => invoke<void>("enable", { config }),
-  restore: () => invoke<void>("restore"),
+  enable: (config: Config) => privilegedInvoke<void>("enable", { config }),
+  restore: () => privilegedInvoke<void>("restore", {}),
   getPreferences: () => invoke<Preferences>("get_preferences"),
   savePreferences: (preferences: Preferences) =>
-    invoke<void>("save_preferences", { preferences }),
+    privilegedInvoke<void>("save_preferences", { preferences }),
   openLink: (
     target: "github" | "website" | "changelog" | "download" | "issues",
   ) => invoke<void>("open_project_link", { target }),

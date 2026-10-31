@@ -148,3 +148,90 @@ describe("routing state", () => {
     expect(r.config.internalId).toBe("");
   });
 });
+
+it("debounces changed routing, retains selected adapters and clears after recovery", async () => {
+  const r = useRouting();
+  vi.mocked(api.snapshot).mockResolvedValue({
+    ...snapshot(true),
+    routingStatus: "active",
+  });
+  await r.initialize();
+  r.select("internal", "1");
+  const now = vi.spyOn(Date, "now").mockReturnValue(1000);
+  vi.mocked(api.snapshot).mockResolvedValue({
+    ...snapshot(true),
+    adapters: [],
+    routingStatus: "changed",
+  });
+  await r.checkNetwork();
+  expect(r.networkNotice.value).toBe("");
+  expect(r.config.internalId).toBe("1");
+  now.mockReturnValue(3100);
+  await r.checkNetwork();
+  expect(r.networkNotice.value).toBe("networkChanged");
+  await r.checkNetwork();
+  expect(api.enable).not.toHaveBeenCalled();
+  expect(api.restore).not.toHaveBeenCalled();
+  vi.mocked(api.snapshot).mockResolvedValue({
+    ...snapshot(true),
+    routingStatus: "active",
+  });
+  await r.checkNetwork();
+  expect(r.networkNotice.value).toBe("");
+  now.mockRestore();
+});
+it("reports monitoring failure without claiming routing remains active", async () => {
+  const r = useRouting();
+  vi.mocked(api.snapshot).mockResolvedValue({
+    ...snapshot(true),
+    routingStatus: "active",
+  });
+  await r.initialize();
+  vi.mocked(api.snapshot).mockRejectedValue("unavailable");
+  await r.checkNetwork();
+  expect(r.networkNotice.value).toBe("networkCheckFailed");
+  expect(r.data.value.routingStatus).toBe("unknown");
+});
+
+it("reads routes silently while updating timestamps and still reports failures", async () => {
+  const { notices } = await import("../notifications");
+  notices.value = [];
+  const r = useRouting();
+  await r.initialize();
+  await r.act("inspect");
+  const lastRead = r.updatedAt.value;
+  expect(lastRead).toBeInstanceOf(Date);
+  expect(notices.value).toEqual([]);
+  vi.mocked(api.snapshot).mockRejectedValue("route read failed");
+  await r.act("inspect");
+  expect(r.updatedAt.value).toBe(lastRead);
+  expect(
+    notices.value.some(
+      (n) => n.kind === "error" && n.text === "route read failed",
+    ),
+  ).toBe(true);
+});
+it("keeps saved adapter names when reopening after a disconnection", async () => {
+  const base = snapshot(true);
+  vi.mocked(api.snapshot).mockResolvedValue({
+    ...base,
+    savedAdapters: base.adapters,
+    adapters: [base.adapters[0]],
+    routingStatus: "changed",
+    config: {
+      internalId: "1",
+      externalId: "2",
+      internalGateway: "10.0.0.1",
+      externalGateway: "192.168.1.1",
+      cidr: "10.0.0.0/8",
+    },
+  });
+  const r = useRouting();
+  await r.initialize();
+  expect(r.config.externalId).toBe("2");
+  expect(r.adapterNames["2"]).toBe("外网");
+  expect(r.networkHeading.value).toBe("外网接口不可用");
+  expect(r.networkDetail.value).toContain("外网");
+  expect(r.networkDetail.value).toContain("当前不可用");
+  expect(r.config.externalGateway).toBe("192.168.1.1");
+});

@@ -1,3 +1,4 @@
+import { notify } from "../notifications";
 import { ref, watchEffect } from "vue";
 import { isTauri } from "@tauri-apps/api/core";
 import { api, type Preferences } from "../api";
@@ -5,8 +6,10 @@ import { language, t } from "../i18n";
 const defaults: Preferences = {
   language: "zh-CN",
   theme: "system",
-  closeToTray: false,
+  closeToTray: true,
   autoStart: false,
+  internalProbeTarget: "",
+  externalProbeTarget: "223.5.5.5",
 };
 export const preferences = ref<Preferences>({ ...defaults });
 export const settingsBusy = ref(false),
@@ -60,6 +63,8 @@ export async function loadPreferences() {
     cache();
   } catch (e) {
     settingsError.value = String(e);
+    if (!String(e).includes(t("adminRequired")))
+      notify(settingsError.value, "error");
   } finally {
     settingsBusy.value = false;
   }
@@ -77,8 +82,11 @@ export async function updatePreferences(patch: Partial<Preferences>) {
     preferences.value = next;
     cache();
     settingsSaved.value = true;
+    notify(t("saved"), "success");
   } catch (e) {
     settingsError.value = String(e);
+    if (!String(e).includes(t("adminRequired")))
+      notify(settingsError.value, "error");
   } finally {
     settingsBusy.value = false;
   }

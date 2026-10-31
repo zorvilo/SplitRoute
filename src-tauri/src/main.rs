@@ -1,4 +1,4 @@
-#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+#![windows_subsystem = "windows"]
 mod application;
 mod commands;
 mod desktop;
@@ -13,6 +13,10 @@ fn main() {
         for window in &mut context.config_mut().app.windows {
             window.title.push_str("（开发）");
         }
+    }
+    // Elevated instances must not be redirected to a non-elevated instance.
+    if infrastructure::privilege::require_admin().is_ok() {
+        context.config_mut().identifier.push_str(".admin");
     }
     tauri::Builder::default()
         .plugin(tauri_plugin_single_instance::init(|app, _, _| {
@@ -39,6 +43,7 @@ fn main() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
+            infrastructure::privilege::restart_as_admin,
             commands::snapshot,
             commands::enable,
             commands::restore,

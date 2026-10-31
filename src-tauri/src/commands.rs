@@ -22,6 +22,7 @@ pub async fn probe_connectivity(
 #[serde(rename_all = "camelCase")]
 pub struct Snapshot {
     adapters: Vec<Adapter>,
+    saved_adapters: Vec<Adapter>,
     routes: Vec<Route>,
     pending: bool,
     routing_status: RoutingStatus,
@@ -44,6 +45,10 @@ pub fn snapshot(state: tauri::State<AppState>) -> AppResult<Snapshot> {
     let routes = s.network.routes()?;
     let routing_status = s.status(config.as_ref(), &adapters, &routes)?;
     Ok(Snapshot {
+        saved_adapters: record
+            .as_ref()
+            .map(|r| r.adapters.clone())
+            .unwrap_or_default(),
         adapters,
         routes,
         pending: record.is_some(),

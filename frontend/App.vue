@@ -4,11 +4,13 @@ import {
   RefreshCw,
   Play,
   RotateCcw,
-  ListTree,
   ShieldCheck,
+  Check,
   CircleAlert,
-  CheckCircle2,
 } from "lucide-vue-next";
+import AppNotifications from "./components/AppNotifications.vue";
+import AdminPrompt from "./components/AdminPrompt.vue";
+import EnableSummary from "./components/EnableSummary.vue";
 import AppSidebar from "./components/AppSidebar.vue";
 import RoutesView from "./components/RoutesView.vue";
 import NetworkCard from "./components/NetworkCard.vue";
@@ -18,10 +20,13 @@ import { loadPreferences } from "./composables/usePreferences";
 import { t } from "./i18n";
 const {
   data,
+  networkNotice,
+  networkDetail,
+  networkHeading,
+  adapterNames,
+  checkNetwork,
   config,
   busy,
-  error,
-  message,
   initialized,
   status,
   canEnable,
@@ -34,6 +39,22 @@ const {
   act,
   initialize,
 } = useRouting();
+const manualChecking = ref(false);
+async function recheck() {
+  if (busy.value || manualChecking.value) return;
+  manualChecking.value = true;
+  try {
+    await act("inspect");
+  } finally {
+    manualChecking.value = false;
+  }
+}
+const summaryOpen = ref(false);
+function confirmEnable() {
+  if (!canEnable.value) return;
+  summaryOpen.value = false;
+  void act("enable");
+}
 const page = ref<"config" | "routes" | "settings">("config");
 async function showRoutes() {
   if (busy.value) return;
@@ -44,18 +65,34 @@ function navigate(next: "config" | "routes" | "settings") {
   if (next === "routes") void showRoutes();
   else page.value = next;
 }
+let networkTimer: ReturnType<typeof setInterval> | undefined;
 function onFocus() {
   if (initialized.value && !busy.value && page.value !== "settings")
-    void act("refresh");
+    void act("refresh", true);
 }
 onMounted(() => {
   void initialize();
   void loadPreferences();
+  networkTimer = setInterval(() => {
+    void checkNetwork();
+  }, 3000);
   window.addEventListener("focus", onFocus);
 });
-onUnmounted(() => window.removeEventListener("focus", onFocus));
+onUnmounted(() => {
+  window.removeEventListener("focus", onFocus);
+  if (networkTimer) clearInterval(networkTimer);
+});
 </script>
 <template>
+  <AppNotifications />
+  <AdminPrompt :config="config" />
+  <EnableSummary
+    v-model:open="summaryOpen"
+    :config="config"
+    :adapters="data.adapters"
+    :can-enable="canEnable"
+    @confirm="confirmEnable"
+  />
   <div class="app-layout">
     <AppSidebar
       :page="page"
@@ -63,20 +100,26 @@ onUnmounted(() => window.removeEventListener("focus", onFocus));
       :busy="busy"
       @navigate="navigate"
     />
-    <main class="workspace" :aria-busy="busy">
+    <main
+      class="workspace"
+      :class="{ 'config-workspace': page === 'config' }"
+      :aria-busy="busy"
+    >
       <header class="content-header">
         <div>
-          <h1>
-            {{
-              t(
-                page === "config"
-                  ? "config"
-                  : page === "routes"
-                    ? "routes"
-                    : "settings",
-              )
-            }}
-          </h1>
+          <div class="config-title-row">
+            <h1>
+              {{
+                t(
+                  page === "config"
+                    ? "config"
+                    : page === "routes"
+                      ? "routes"
+                      : "settings",
+                )
+              }}
+            </h1>
+          </div>
           <p v-if="page !== 'settings'">
             {{ t(page === "config" ? "intro" : "routeIntro") }}
           </p>
@@ -90,11 +133,17 @@ onUnmounted(() => window.removeEventListener("focus", onFocus));
               data.routingStatus === 'unknown',
             recorded: data.routingStatus === 'active',
           }"
-          ><span class="status-dot"></span
-          >{{ busy ? t("processing") : status }}</span
+          ><span class="status-dot" aria-hidden="true"></span
+          >{{
+            networkNotice
+              ? t("networkChangedTitle")
+              : data.routingStatus === "active"
+                ? t("routingActive")
+                : status
+          }}</span
         >
         <button
-          v-if="page !== 'settings'"
+          v-if="page !== 'settings' && !networkNotice"
           class="button quiet"
           :disabled="busy"
           @click="act(page === 'routes' ? 'inspect' : 'refresh')"
@@ -104,15 +153,43 @@ onUnmounted(() => window.removeEventListener("focus", onFocus));
           }}
         </button>
       </header>
+      <div
+        v-if="networkNotice"
+        class="network-alert"
+        :title="t('networkSafetyHint')"
+        role="status"
+        aria-live="polite"
+      >
+        <CircleAlert :size="20" />
+        <div>
+          <strong>{{ networkHeading }}</strong>
+          <p>{{ networkDetail }}</p>
+        </div>
+        <button class="button recheck-button" :disabled="busy" @click="recheck">
+          <RefreshCw :size="15" :class="{ spinning: manualChecking }" />{{
+            t(manualChecking ? "checking" : "recheckNetwork")
+          }}
+        </button>
+      </div>
+
       <SettingsView v-if="page === 'settings'" />
-      <div v-show="page === 'config'">
-        <div v-if="initialized && data.adapters.length < 2" class="notice">
+      <div v-show="page === 'config'" class="routing-config">
+        <div
+          v-if="
+            initialized &&
+            !data.pending &&
+            !networkNotice &&
+            data.adapters.length < 2
+          "
+          class="notice"
+        >
           <CircleAlert :size="17" />{{
             t("tooFew", { count: data.adapters.length })
           }}
         </div>
         <div class="network-list">
           <NetworkCard
+            :offline-name="adapterNames[config.internalId]"
             kind="internal"
             :selected="config.internalId"
             :gateway="config.internalGateway"
@@ -167,6 +244,7 @@ onUnmounted(() => window.removeEventListener("focus", onFocus));
             </div>
           </NetworkCard>
           <NetworkCard
+            :offline-name="adapterNames[config.externalId]"
             kind="external"
             :selected="config.externalId"
             :gateway="config.externalGateway"
@@ -183,13 +261,6 @@ onUnmounted(() => window.removeEventListener("focus", onFocus));
           <div class="action-buttons">
             <button
               class="button secondary"
-              :disabled="busy || !initialized"
-              @click="showRoutes"
-            >
-              <ListTree :size="16" />{{ t("viewRoutes") }}
-            </button>
-            <button
-              class="button secondary"
               :disabled="busy || !data.pending"
               @click="act('restore')"
             >
@@ -197,10 +268,29 @@ onUnmounted(() => window.removeEventListener("focus", onFocus));
             </button>
             <button
               class="button primary"
+              :class="{
+                'enabled-button': data.routingStatus === 'active',
+                'needs-check-button':
+                  data.pending && data.routingStatus !== 'active',
+              }"
               :disabled="!canEnable"
-              @click="act('enable')"
+              @click="summaryOpen = true"
             >
-              <Play :size="16" />{{ t("enable") }}
+              <CircleAlert
+                v-if="data.pending && data.routingStatus !== 'active'"
+                :size="16"
+              /><Check
+                v-else-if="data.routingStatus === 'active'"
+                :size="16"
+              /><Play v-else :size="16" />{{
+                t(
+                  data.pending && data.routingStatus !== "active"
+                    ? "needsCheckButton"
+                    : data.routingStatus === "active"
+                      ? "enabledButton"
+                      : "enable",
+                )
+              }}
             </button>
           </div>
         </div>
@@ -213,21 +303,6 @@ onUnmounted(() => window.removeEventListener("focus", onFocus));
         :updated-at="updatedAt"
         @update:all-routes="allRoutes = $event"
       />
-      <div
-        v-if="page !== 'settings'"
-        class="feedback"
-        :class="{ error: error }"
-        role="status"
-        aria-live="polite"
-      >
-        <CircleAlert v-if="error" :size="17" /><CheckCircle2
-          v-else
-          :size="17"
-        /><span>{{ error || message }}</span>
-      </div>
-      <footer v-if="page !== 'settings'">
-        <span>SplitRoute <span class="version">0.1.0</span></span>
-      </footer>
     </main>
   </div>
 </template>

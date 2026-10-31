@@ -9,6 +9,7 @@ defineProps<{
   gateway: string;
   adapters: Adapter[];
   disabled: boolean;
+  offlineName?: string;
 }>();
 const emit = defineEmits<{
   select: [value: string];
@@ -46,6 +47,7 @@ const emit = defineEmits<{
         :model-value="selected"
         :adapters="adapters"
         :disabled="disabled"
+        :offline-name="offlineName"
         @update:model-value="emit('select', $event)"
       />
       <label class="gateway-field"

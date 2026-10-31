@@ -70,6 +70,5 @@ const emit = defineEmits<{ "update:allRoutes": [value: boolean] }>();
         }}</span
       >
     </div>
-    <p class="route-note">{{ t("routeNote") }}</p>
   </section>
 </template>

@@ -15,9 +15,9 @@
         "label": "main",
         "title": "SplitRoute · 内外网分流",
         "width": 1000,
-        "height": 610,
+        "height": 550,
         "minWidth": 840,
-        "minHeight": 580
+        "minHeight": 500
       }
     ],
     "security": {

@@ -12,14 +12,23 @@ pub struct Preferences {
     pub theme: String,
     pub close_to_tray: bool,
     pub auto_start: bool,
+    #[serde(default)]
+    pub internal_probe_target: String,
+    #[serde(default = "default_external_target")]
+    pub external_probe_target: String,
+}
+fn default_external_target() -> String {
+    "223.5.5.5".into()
 }
 impl Default for Preferences {
     fn default() -> Self {
         Self {
             language: "zh-CN".into(),
             theme: "system".into(),
-            close_to_tray: false,
+            close_to_tray: true,
             auto_start: false,
+            internal_probe_target: String::new(),
+            external_probe_target: default_external_target(),
         }
     }
 }
@@ -29,6 +38,12 @@ impl Preferences {
             || !["light", "dark", "system"].contains(&self.theme.as_str())
         {
             return Err("无效的语言或主题设置".into());
+        }
+        if (!self.internal_probe_target.is_empty()
+            && crate::infrastructure::connectivity::target(&self.internal_probe_target).is_none())
+            || crate::infrastructure::connectivity::target(&self.external_probe_target).is_none()
+        {
+            return Err("检测目标必须是有效的单播 IPv4 地址".into());
         }
         Ok(())
     }
@@ -110,8 +125,31 @@ pub async fn check_update() -> AppResult<crate::infrastructure::releases::Update
 mod tests {
     use super::*;
     #[test]
+    fn validates_probe_targets() {
+        let mut p = Preferences::default();
+        assert!(p.close_to_tray);
+        assert!(!p.auto_start);
+        assert!(p.validate().is_ok());
+        p.internal_probe_target = "10.1.2.3".into();
+        assert!(p.validate().is_ok());
+        for bad in [
+            "example.com",
+            "127.0.0.1",
+            "224.0.0.1",
+            "999.1.1.1",
+            "0.0.0.0",
+        ] {
+            p.external_probe_target = bad.into();
+            assert!(p.validate().is_err());
+        }
+        p.external_probe_target = "1.1.1.1".into();
+        assert!(p.validate().is_ok());
+    }
+    #[test]
     fn validates_preferences() {
         let mut p = Preferences::default();
+        assert!(p.close_to_tray);
+        assert!(!p.auto_start);
         assert!(p.validate().is_ok());
         p.language = "other".into();
         assert!(p.validate().is_err());

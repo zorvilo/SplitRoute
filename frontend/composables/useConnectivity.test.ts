@@ -94,3 +94,22 @@ it("skips unconfigured adapters and reports probe errors honestly", async () => 
   expect(state.report.value.external.status).toBe("unconfigured");
   expect(state.lastRead.value).toBeNull();
 });
+
+it("sends custom targets and discards a reply after the target changes", async () => {
+  const { input, state } = await setup();
+  input.value.externalTarget = "1.1.1.1";
+  let resolve!: (value: Connectivity) => void;
+  vi.mocked(api.probeConnectivity).mockReturnValueOnce(
+    new Promise((r) => {
+      resolve = r;
+    }),
+  );
+  const pending = state.sample();
+  expect(api.probeConnectivity).toHaveBeenCalledWith(
+    expect.objectContaining({ externalTarget: "1.1.1.1" }),
+  );
+  input.value.externalTarget = "8.8.8.8";
+  resolve(reply());
+  await pending;
+  expect(state.history.value).toEqual([]);
+});

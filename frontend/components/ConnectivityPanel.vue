@@ -10,10 +10,13 @@ import {
   HISTORY_LENGTH,
 } from "../connectivity";
 import { t } from "../i18n";
+import { preferences } from "../composables/usePreferences";
 const props = defineProps<{ config: Config }>();
 const { report, history, probing, failure, sample } = useConnectivity(() => ({
   internalId: props.config.internalId,
-  internalGateway: props.config.internalGateway,
+  internalGateway:
+    preferences.value.internalProbeTarget || props.config.internalGateway,
+  externalTarget: preferences.value.externalProbeTarget,
   externalId: props.config.externalId,
 }));
 const ceiling = computed(() =>
