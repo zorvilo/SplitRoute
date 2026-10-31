@@ -49,7 +49,11 @@ mod tests {
     use super::*;
     #[test]
     fn compares_actual_release_versions() {
-        assert!(release_info("v1.0.0").unwrap().available);
+        let current = env!("CARGO_PKG_VERSION");
+        let mut next = semver::Version::parse(current).unwrap();
+        next.major += 1;
+        assert!(release_info(&format!("v{next}")).unwrap().available);
+        assert!(!release_info(current).unwrap().available);
         assert!(!release_info("0.1.0").unwrap().available);
         assert!(!release_info("v0.1.0-beta.1").unwrap().available);
         assert!(release_info("invalid").is_err());

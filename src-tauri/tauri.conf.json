@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "SplitRoute",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "identifier": "com.zorvilo.splitroute",
   "build": {
     "beforeDevCommand": "npm run dev",
@@ -29,11 +29,15 @@
     "targets": ["nsis"],
     "icon": ["icons/icon.ico"],
     "windows": {
-      "webviewInstallMode": { "type": "downloadBootstrapper", "silent": true },
+      "webviewInstallMode": {
+        "type": "downloadBootstrapper",
+        "silent": true
+      },
       "nsis": {
         "languages": ["SimpChinese", "English"],
         "displayLanguageSelector": false
       }
-    }
+    },
+    "license": "MIT"
   }
 }

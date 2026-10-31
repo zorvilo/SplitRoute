@@ -260,7 +260,7 @@ async function check() {
           <div class="about-logo"><ArrowRightLeft :size="30" /></div>
           <div>
             <h2>SplitRoute</h2>
-            <span class="version-badge">{{ t("version") }} v0.1.0</span>
+            <span class="version-badge">{{ t("version") }} v1.0.0</span>
           </div>
         </div>
         <button class="button secondary" :disabled="checking" @click="check">
