@@ -6,7 +6,7 @@
 
 [下载 v1.0.0](https://github.com/zorvilo/SplitRoute/releases/tag/v1.0.0) · [快速开始](#快速开始) · [网络行为](#网络行为) · [反馈问题](https://github.com/zorvilo/SplitRoute/issues)
 
-![SplitRoute 分流配置界面](docs/images/routing.png)
+![SplitRoute 分流配置界面](assets/images/routing.png)
 
 ## 适用场景
 
@@ -58,7 +58,7 @@ SplitRoute 将指定 IPv4 网段交给内网出口，其余 IPv4 流量默认交
 
 进入页面自动读取，支持相关路由和全部 IPv4 路由筛选。切换或刷新成功时更新表格与读取时间，不重复弹成功通知。
 
-![当前路由界面](docs/images/routes.png)
+![当前路由界面](assets/images/routes.png)
 
 </details>
 
@@ -69,7 +69,7 @@ SplitRoute 将指定 IPv4 网段交给内网出口，其余 IPv4 流量默认交
 
 首次运行默认开启“关闭时最小化到托盘”，开机启动默认关闭。已有保存的选择不会被默认值覆盖。
 
-![通用设置界面](docs/images/settings.png)
+![通用设置界面](assets/images/settings.png)
 
 </details>
 
@@ -78,7 +78,7 @@ SplitRoute 将指定 IPv4 网段交给内网出口，其余 IPv4 流量默认交
 
 查看版本、访问项目主页、反馈问题或手动检查更新。检查更新不会自动下载安装，发现新版后提供发布页入口。
 
-![关于界面](docs/images/about.png)
+![关于界面](assets/images/about.png)
 
 </details>
 
@@ -156,7 +156,7 @@ cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings
 cargo test --manifest-path src-tauri/Cargo.toml
 ```
 
-自动测试不修改真实路由，不注册登录启动任务，也不能替代真实双网卡、IP 改变、撤销、重启、托盘、UAC 和 Windows DPI 验收。已记录的布局检查见 [界面验收记录](docs/ui-acceptance.md)。
+自动测试不修改真实路由，不注册登录启动任务，也不能替代真实双网卡、IP 改变、撤销、重启、托盘、UAC 和 Windows DPI 验收。布局检查不能替代实际 Windows DPI 验收。
 
 ### 构建
 
@@ -191,8 +191,6 @@ src-tauri/src/
   infrastructure/      Windows 网络、权限、存储、登录启动和更新请求
   main.rs              依赖组装与启动
 ```
-
-详见 [架构说明](docs/architecture.md)。
 
 ## 反馈问题
 

@@ -1,25 +1,52 @@
+//! 路由领域模型与输入校验，不直接访问 Windows 网络。
+//!
+//! # 作者
+//! lhy
+
 use serde::{Deserialize, Serialize};
 use std::net::Ipv4Addr;
 
+/// 统一携带可展示错误原因的应用结果。
+///
+/// # 作者
+/// lhy
 pub type AppResult<T> = Result<T, String>;
 
+/// 单条 IPv4 路由及其接口、网关和优先级属性。
+///
+/// # 作者
+/// lhy
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Route {
+    /// 路由所属接口的 Windows LUID 字符串。
     pub interface: String,
+    /// 目标 IPv4 网络地址。
     pub network: Ipv4Addr,
+    /// 目标网络前缀长度，单位为位。
     pub prefix: u8,
+    /// 下一跳 IPv4 地址；零地址表示直连路由。
     pub gateway: Ipv4Addr,
+    /// 路由优先级值，不包含接口优先级。
     pub metric: u32,
+    /// Windows 路由协议标识。
     pub protocol: i32,
 }
 impl Route {
+    /// 比较接口、目标网段、前缀和网关，不包含优先级等可变属性。
+    ///
+    /// # 作者
+    /// lhy
     pub fn same_key(&self, other: &Self) -> bool {
         self.interface == other.interface
             && self.network == other.network
             && self.prefix == other.prefix
             && self.gateway == other.gateway
     }
+    /// 校验恢复路由的接口标识、前缀长度及网络地址主机位。
+    ///
+    /// # 作者
+    /// lhy
     pub fn validate(&self) -> AppResult<()> {
         self.interface
             .parse::<u64>()
@@ -30,23 +57,44 @@ impl Route {
         Ok(())
     }
 }
+/// 网络接口标识、名称、IPv4 地址与网关信息。
+///
+/// # 作者
+/// lhy
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Adapter {
+    /// Windows 网络接口 LUID 字符串。
     pub id: String,
+    /// 网络接口显示名称。
     pub name: String,
+    /// 接口 IPv4 地址及前缀列表。
     pub addresses: Vec<String>,
+    /// 下一跳网关；网卡未提供网关时为空字符串。
     pub gateway: String,
 }
+/// 内外网接口、网关及目标网段配置。
+///
+/// # 作者
+/// lhy
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct Config {
+    /// 内网接口标识。
     pub internal_id: String,
+    /// 外网接口标识。
     pub external_id: String,
+    /// 内网路由的下一跳 IPv4 网关。
     pub internal_gateway: String,
+    /// 外网默认路由的下一跳网关。
     pub external_gateway: String,
+    /// 走内网出口的目标 CIDR 网段。
     pub cidr: String,
 }
+/// 将合法的 IPv4 前缀长度转换为掩码，包含零前缀特例。
+///
+/// # 作者
+/// lhy
 fn mask(prefix: u8) -> u32 {
     if prefix == 0 {
         0
@@ -54,6 +102,16 @@ fn mask(prefix: u8) -> u32 {
         u32::MAX << (32 - prefix)
     }
 }
+/// 解析内网 CIDR，拒绝零前缀、越界前缀和包含主机位的地址。
+///
+/// # 参数
+/// - `text`：带前缀长度的内网网段文本。
+///
+/// # 返回
+/// 解析后的网络地址与前缀；格式非法或含主机位时返回错误。
+///
+/// # 作者
+/// lhy
 pub fn cidr(text: &str) -> AppResult<(Ipv4Addr, u8)> {
     let (ip, prefix) = text
         .trim()
@@ -69,6 +127,22 @@ pub fn cidr(text: &str) -> AppResult<(Ipv4Addr, u8)> {
     }
     Ok((ip, prefix))
 }
+/// 校验内外网接口和直连网关，生成内网路由及外网默认路由计划。
+///
+/// 仅生成计划，不写入系统；更具体的现有路由仍由系统匹配。
+///
+/// # 参数
+/// - `config`：内外网接口、网关和目标网段。
+/// - `adapters`：当前可用接口及其 IPv4 地址。
+///
+/// # 返回
+/// 依次为内网指定网段路由与外网默认路由。
+///
+/// # 错误
+/// 接口相同、接口缺失、网段非法或网关不在直连网段时拒绝生成计划。
+///
+/// # 作者
+/// lhy
 pub fn plan(config: &Config, adapters: &[Adapter]) -> AppResult<Vec<Route>> {
     if config.internal_id == config.external_id {
         return Err("内网和外网必须选择不同的网卡".into());
@@ -139,6 +213,10 @@ pub fn plan(config: &Config, adapters: &[Adapter]) -> AppResult<Vec<Route>> {
 #[cfg(test)]
 pub mod tests {
     use super::*;
+    /// 构造领域规则测试所需的双网卡配置与地址。
+    ///
+    /// # 作者
+    /// lhy
     pub fn fixture() -> (Config, Vec<Adapter>) {
         (
             Config {
@@ -164,6 +242,10 @@ pub mod tests {
             ],
         )
     }
+    /// 验证网段边界及网关直连条件，拒绝非法配置。
+    ///
+    /// # 作者
+    /// lhy
     #[test]
     fn validates_network_and_gateway() {
         for bad in [

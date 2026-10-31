@@ -1,3 +1,8 @@
+//! 配置与撤销记录的校验读取及落盘替换。
+//!
+//! # 作者
+//! lhy
+
 use crate::{
     application::{Journal, Recovery},
     domain::{AppResult, Config},
@@ -13,21 +18,40 @@ use windows::{
     Win32::Storage::FileSystem::{MoveFileExW, MOVEFILE_REPLACE_EXISTING, MOVEFILE_WRITE_THROUGH},
 };
 
+/// 应用本地目录中的配置与撤销记录存储。
+///
+/// # 作者
+/// lhy
 pub struct FileJournal {
+    /// 当前用户的应用数据目录。
     pub root: PathBuf,
 }
+/// 带格式版本的撤销记录文件封装。
+///
+/// # 作者
+/// lhy
 #[derive(Serialize, Deserialize)]
 struct Record {
+    /// 撤销记录的格式版本号。
     version: u32,
+    /// 撤销记录内容；空值表示无待撤销记录。
     record: Option<Recovery>,
 }
 impl FileJournal {
+    /// 定位当前用户的应用数据目录，不存在时创建目录。
+    ///
+    /// # 作者
+    /// lhy
     pub fn new() -> AppResult<Self> {
         let root = std::env::var_os("LOCALAPPDATA").ok_or("无法定位本地配置目录")?;
         let root = PathBuf::from(root).join("SplitRoute");
         fs::create_dir_all(&root).map_err(|e| e.to_string())?;
         Ok(Self { root })
     }
+    /// 读取保存的分流配置，文件不存在时返回空结果。
+    ///
+    /// # 作者
+    /// lhy
     pub fn config(&self) -> AppResult<Option<Config>> {
         let p = self.root.join("config.json");
         if !p.try_exists().map_err(|e| e.to_string())? {
@@ -37,6 +61,10 @@ impl FileJournal {
             .map(Some)
             .map_err(|e| format!("配置文件损坏：{e}"))
     }
+    /// 以临时文件替换方式保存有效分流配置。
+    ///
+    /// # 作者
+    /// lhy
     pub fn save_config(&self, c: &Config) -> AppResult<()> {
         atomic(
             &self.root.join("config.json"),
@@ -44,6 +72,17 @@ impl FileJournal {
         )
     }
 }
+/// 先写入并同步临时文件，再以写穿透方式替换目标文件。
+///
+/// # 参数
+/// - `path`：目标文件路径。
+/// - `bytes`：需要完整落盘的文件内容。
+///
+/// # 错误
+/// 创建、写入、同步或替换文件失败时返回错误。
+///
+/// # 作者
+/// lhy
 pub(crate) fn atomic(path: &Path, bytes: &[u8]) -> AppResult<()> {
     let temp = path.with_extension("tmp");
     let mut f = OpenOptions::new()
@@ -69,6 +108,10 @@ pub(crate) fn atomic(path: &Path, bytes: &[u8]) -> AppResult<()> {
 }
 use std::os::windows::ffi::OsStrExt;
 impl Journal for FileJournal {
+    /// 读取并校验当前格式的撤销记录，拒绝超大、损坏或非法内容。
+    ///
+    /// # 作者
+    /// lhy
     fn load(&self) -> AppResult<Option<Recovery>> {
         let path = self.root.join("recovery.json");
         if !path.try_exists().map_err(|e| e.to_string())? {
@@ -93,6 +136,10 @@ impl Journal for FileJournal {
         }
         Ok(stored.record)
     }
+    /// 按当前格式保存撤销记录或清空记录内容。
+    ///
+    /// # 作者
+    /// lhy
     fn save(&mut self, record: Option<&Recovery>) -> AppResult<()> {
         atomic(
             &self.root.join("recovery.json"),
@@ -107,6 +154,10 @@ impl Journal for FileJournal {
 #[cfg(test)]
 mod tests {
     use super::*;
+    /// 验证文件记录写入读取一致，损坏内容被拒绝。
+    ///
+    /// # 作者
+    /// lhy
     #[test]
     fn durable_roundtrip_and_corruption() {
         let root = std::env::temp_dir().join(format!("splitroute-test-{}", std::process::id()));

@@ -1,8 +1,17 @@
+//! 托盘菜单、窗口关闭行为及固定项目链接。
+//!
+//! # 作者
+//! lhy
+
 use tauri::{
     menu::{Menu, MenuItem},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
     Manager,
 };
+/// 显示主窗口、恢复最小化并请求焦点。
+///
+/// # 作者
+/// lhy
 fn show(app: &tauri::AppHandle) {
     if let Some(w) = app.get_webview_window("main") {
         let _ = w.show();
@@ -10,6 +19,10 @@ fn show(app: &tauri::AppHandle) {
         let _ = w.set_focus();
     }
 }
+/// 按界面语言创建托盘的打开与退出菜单。
+///
+/// # 作者
+/// lhy
 fn menu(app: &tauri::AppHandle, language: &str) -> tauri::Result<Menu<tauri::Wry>> {
     let (open, exit) = match language {
         "en" => ("Open SplitRoute", "Exit"),
@@ -25,12 +38,20 @@ fn menu(app: &tauri::AppHandle, language: &str) -> tauri::Result<Menu<tauri::Wry
         ],
     )
 }
+/// 在语言变化后更新现有托盘菜单。
+///
+/// # 作者
+/// lhy
 pub fn update_menu(app: &tauri::AppHandle, language: &str) -> tauri::Result<()> {
     if let Some(tray) = app.tray_by_id("main") {
         tray.set_menu(Some(menu(app, language)?))?;
     }
     Ok(())
 }
+/// 初始化托盘与主题，并根据偏好决定关闭窗口时隐藏还是退出。
+///
+/// # 作者
+/// lhy
 pub fn setup(app: &tauri::App) -> tauri::Result<()> {
     let state = app.state::<crate::settings::PreferencesState>();
     let preferences = state.0.lock().expect("preferences lock").clone();
@@ -81,6 +102,10 @@ pub fn setup(app: &tauri::App) -> tauri::Result<()> {
     Ok(())
 }
 
+/// 仅打开预定义的项目链接，拒绝任意目标。
+///
+/// # 作者
+/// lhy
 pub fn open_project_link(target: String) -> crate::domain::AppResult<()> {
     use windows::{
         core::PCWSTR,

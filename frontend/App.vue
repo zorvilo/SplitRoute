@@ -1,4 +1,10 @@
 <script setup lang="ts">
+/**
+ * 应用主界面：组装导航、配置、路由、提醒与确认流程。
+ *
+ * @author lhy
+ */
+
 import { onMounted, onUnmounted, ref } from "vue";
 import {
   RefreshCw,
@@ -40,6 +46,11 @@ const {
   initialize,
 } = useRouting();
 const manualChecking = ref(false);
+/**
+ * 执行用户发起的状态复查，单独标识按钮动画并避免重复请求。
+ *
+ * @author lhy
+ */
 async function recheck() {
   if (busy.value || manualChecking.value) return;
   manualChecking.value = true;
@@ -50,22 +61,42 @@ async function recheck() {
   }
 }
 const summaryOpen = ref(false);
+/**
+ * 仅在允许启用时关闭摘要弹窗并提交当前配置。
+ *
+ * @author lhy
+ */
 function confirmEnable() {
   if (!canEnable.value) return;
   summaryOpen.value = false;
   void act("enable");
 }
 const page = ref<"config" | "routes" | "settings">("config");
+/**
+ * 切换到路由页并读取实际路由，成功时不弹重复通知。
+ *
+ * @author lhy
+ */
 async function showRoutes() {
   if (busy.value) return;
   page.value = "routes";
   await act("inspect");
 }
+/**
+ * 按侧栏目标切换页面，进入路由页时读取数据。
+ *
+ * @author lhy
+ */
 function navigate(next: "config" | "routes" | "settings") {
   if (next === "routes") void showRoutes();
   else page.value = next;
 }
 let networkTimer: ReturnType<typeof setInterval> | undefined;
+/**
+ * 窗口重新获得焦点时静默刷新网络，设置页不触发该刷新。
+ *
+ * @author lhy
+ */
 function onFocus() {
   if (initialized.value && !busy.value && page.value !== "settings")
     void act("refresh", true);

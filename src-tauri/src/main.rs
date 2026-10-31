@@ -1,3 +1,8 @@
+//! 桌面应用入口，组装状态、单实例机制、托盘和命令。
+//!
+//! # 作者
+//! lhy
+
 #![windows_subsystem = "windows"]
 mod application;
 mod commands;
@@ -6,6 +11,10 @@ mod domain;
 mod infrastructure;
 mod settings;
 use tauri::Manager;
+/// 配置实例标识，组装共享服务并注册桌面命令后启动应用。
+///
+/// # 作者
+/// lhy
 fn main() {
     let mut context = tauri::generate_context!();
     if cfg!(debug_assertions) {
@@ -14,7 +23,7 @@ fn main() {
             window.title.push_str("（开发）");
         }
     }
-    // Elevated instances must not be redirected to a non-elevated instance.
+    // 管理员实例必须使用独立标识，避免被重定向到普通权限实例。
     if infrastructure::privilege::require_admin().is_ok() {
         context.config_mut().identifier.push_str(".admin");
     }

@@ -1,14 +1,24 @@
 <script setup lang="ts">
+/**
+ * 侧栏导航与连通检测面板容器。
+ *
+ * @author lhy
+ */
+
 import { ArrowRightLeft, Route, Settings } from "lucide-vue-next";
 import type { Config } from "../api";
 import { t } from "../i18n";
 import ConnectivityPanel from "./ConnectivityPanel.vue";
 defineProps<{
+  /** 当前选中的页面。 */
   page: "config" | "routes" | "settings";
+  /** 当前分流配置。 */
   config: Config;
+  /** 是否正在执行互斥操作。 */
   busy: boolean;
 }>();
 const emit = defineEmits<{
+  /** 请求切换侧栏页面。 */
   navigate: [page: "config" | "routes" | "settings"];
 }>();
 </script>

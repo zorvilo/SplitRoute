@@ -1,3 +1,9 @@
+/**
+ * 全局主题、页面布局与组件样式。
+ *
+ * @author lhy
+ */
+/* 全局字体与浅色主题变量。 */
 :root {
   font-family: "Segoe UI Variable Text", "Microsoft YaHei UI", sans-serif;
   font-size: 14px;
@@ -561,6 +567,7 @@ footer {
   box-shadow: 0 1px 3px #2026320d;
 }
 
+/* 深色主题通过变量覆盖复用组件结构。 */
 :root[data-theme="dark"] {
   color-scheme: dark;
   --canvas: #171a20;
@@ -887,6 +894,7 @@ footer {
   color: var(--blue);
 }
 
+/* 桌面外壳：侧栏固定，主内容独立滚动。 */
 .app-layout {
   display: flex;
   height: 100dvh;
@@ -1383,6 +1391,7 @@ footer {
   background: #0005;
   z-index: 1100;
 }
+/* 确认弹窗相对右侧内容区居中，小窗口限制宽高。 */
 .enable-summary {
   position: fixed;
   z-index: 1101;
@@ -1472,6 +1481,7 @@ footer {
   }
 }
 
+/* 浮动通知相对内容区居中，不占据页面文档流。 */
 .app-notifications {
   position: fixed;
   z-index: 2000;
@@ -1587,6 +1597,7 @@ footer {
     0 0 10px #00a88270;
 }
 
+/* 首页使用弹性留白将操作区推到底部，空间不足时正常滚动。 */
 .config-workspace {
   display: flex;
   flex-direction: column;

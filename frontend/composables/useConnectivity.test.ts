@@ -1,3 +1,8 @@
+/**
+ * 连通检测状态：管理采样、切换目标、异步过期结果和资源清理。对应的隔离测试。
+ *
+ * @author lhy
+ */
 import { createSSRApp, ref } from "vue";
 import { renderToString } from "@vue/server-renderer";
 import { beforeEach, expect, it, vi } from "vitest";
@@ -5,6 +10,12 @@ import { api, type Connectivity, type ProbeRequest } from "../api";
 import { useConnectivity } from "./useConnectivity";
 vi.mock("../api", () => ({ api: { probeConnectivity: vi.fn() } }));
 beforeEach(() => vi.resetAllMocks());
+/**
+ * 创建可替换输入的连通检测测试状态。
+ *
+ * @returns 测试输入及检测状态
+ * @author lhy
+ */
 async function setup() {
   const input = ref<ProbeRequest>({
     internalId: "1",
@@ -22,6 +33,12 @@ async function setup() {
   );
   return { input, state };
 }
+/**
+ * 构造内网零毫秒成功、外网超时的固定测试结果。
+ *
+ * @returns 固定的内外网检测结果
+ * @author lhy
+ */
 const reply = (): Connectivity => ({
   internal: {
     status: "reachable",
@@ -36,6 +53,11 @@ const reply = (): Connectivity => ({
     source: "192.168.1.2",
   },
 });
+/**
+ * 验证保存真实探测结果并将超时记录为空样本。
+ *
+ * @author lhy
+ */
 it("stores real replies and represents timeout samples as gaps", async () => {
   const { state } = await setup();
   vi.mocked(api.probeConnectivity).mockResolvedValue(reply());
@@ -45,6 +67,11 @@ it("stores real replies and represents timeout samples as gaps", async () => {
   for (let i = 0; i < 31; i++) await state.sample();
   expect(state.history.value).toHaveLength(30);
 });
+/**
+ * 验证探测不重叠，并丢弃旧接口选择对应的响应。
+ *
+ * @author lhy
+ */
 it("does not overlap probes and discards replies from a previous adapter selection", async () => {
   const { input, state } = await setup();
   let resolve!: (value: Connectivity) => void;
@@ -62,6 +89,11 @@ it("does not overlap probes and discards replies from a previous adapter selecti
   expect(state.history.value).toEqual([]);
   expect(state.probing.value).toBe(false);
 });
+/**
+ * 验证下一次探测进行时保留旧曲线与状态。
+ *
+ * @author lhy
+ */
 it("keeps the previous curve and status visible while the next probe runs", async () => {
   const { state } = await setup();
   vi.mocked(api.probeConnectivity).mockResolvedValueOnce(reply());
@@ -82,6 +114,11 @@ it("keeps the previous curve and status visible while the next probe runs", asyn
   await pending;
   expect(state.history.value).toHaveLength(2);
 });
+/**
+ * 验证未配置接口不探测，检测错误不伪装为成功。
+ *
+ * @author lhy
+ */
 it("skips unconfigured adapters and reports probe errors honestly", async () => {
   const { input, state } = await setup();
   input.value = { internalId: "", internalGateway: "", externalId: "" };
@@ -95,6 +132,11 @@ it("skips unconfigured adapters and reports probe errors honestly", async () => 
   expect(state.lastRead.value).toBeNull();
 });
 
+/**
+ * 验证发送自定义目标，并丢弃目标切换前的响应。
+ *
+ * @author lhy
+ */
 it("sends custom targets and discards a reply after the target changes", async () => {
   const { input, state } = await setup();
   input.value.externalTarget = "1.1.1.1";

@@ -1,18 +1,32 @@
 <script setup lang="ts">
+/**
+ * 内网或外网出口的接口、网关和附加配置卡片。
+ *
+ * @author lhy
+ */
+
 import { t } from "../i18n";
 import { Cable, Globe2 } from "lucide-vue-next";
 import AdapterSelect from "./AdapterSelect.vue";
 import type { Adapter } from "../api";
 defineProps<{
+  /** 出口角色或通知类型。 */
   kind: "internal" | "external";
+  /** 所选网络接口的标识。 */
   selected: string;
+  /** 下一跳网关地址。 */
   gateway: string;
+  /** 当前可用接口列表。 */
   adapters: Adapter[];
+  /** 是否禁止当前控件操作。 */
   disabled: boolean;
+  /** 接口不可用时保留的原名称。 */
   offlineName?: string;
 }>();
 const emit = defineEmits<{
+  /** 请求更新所选接口。 */
   select: [value: string];
+  /** 下一跳网关地址。 */
   gateway: [value: string];
 }>();
 </script>

@@ -1,4 +1,14 @@
+/**
+ * 界面文案与参数插值，按当前语言选择对应文本。
+ *
+ * @author lhy
+ */
 import { ref } from "vue";
+/**
+ * 支持的四种界面语言代码。
+ *
+ * @author lhy
+ */
 export type Language = "zh-CN" | "zh-TW" | "en" | "ja";
 export const language = ref<Language>("zh-CN");
 const messages = {
@@ -580,7 +590,20 @@ const messages = {
     "ネットワーク情報の取得やこの操作はデスクトップ版で行ってください。",
   ],
 } as const;
+/**
+ * 由文案表推导的合法文案键。
+ *
+ * @author lhy
+ */
 export type MessageKey = keyof typeof messages;
+/**
+ * 按当前语言获取文案并替换占位参数，缺失参数保留原占位符。
+ *
+ * @param key 文案键
+ * @param values 有效延迟样本或文案占位参数
+ * @returns 当前语言下完成插值的文本
+ * @author lhy
+ */
 export function t(
   key: MessageKey,
   values: Record<string, string | number> = {},

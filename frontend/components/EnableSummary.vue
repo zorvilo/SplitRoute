@@ -1,4 +1,10 @@
 <script setup lang="ts">
+/**
+ * 启用分流前的配置摘要与确认弹窗，不直接修改路由。
+ *
+ * @author lhy
+ */
+
 import {
   DialogRoot,
   DialogPortal,
@@ -11,12 +17,20 @@ import {
 import type { Adapter, Config } from "../api";
 import { t } from "../i18n";
 defineProps<{
+  /** 确认弹窗是否打开。 */
   open: boolean;
+  /** 当前分流配置。 */
   config: Config;
+  /** 当前可用接口列表。 */
   adapters: Adapter[];
+  /** 当前是否允许提交启用操作。 */
   canEnable: boolean;
 }>();
-const emit = defineEmits<{ "update:open": [value: boolean]; confirm: [] }>();
+const emit = defineEmits<{
+  /** 请求更新弹窗开关状态。 */
+  "update:open": [value: boolean]; /** 用户明确确认后发出的操作事件。 */
+  confirm: [];
+}>();
 </script>
 <template>
   <DialogRoot :open="open" @update:open="emit('update:open', $event)">

@@ -1,3 +1,15 @@
+/**
+ * 根据网卡 IPv4 地址推导完整私有地址范围。
+ *
+ * @author lhy
+ */
+/**
+ * 解析带前缀的网卡 IPv4 地址并返回完整私有网段，无法识别时返回空字符串。
+ *
+ * @param address 带前缀长度的 IPv4 地址
+ * @returns 识别出的私有 CIDR，无法识别时为空字符串
+ * @author lhy
+ */
 export function privateNetworkFromAddress(address: string): string {
   const match = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})\/(\d{1,2})$/.exec(
     address,

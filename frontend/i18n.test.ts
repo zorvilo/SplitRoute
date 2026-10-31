@@ -1,8 +1,18 @@
+/**
+ * 界面文案与参数插值，按当前语言选择对应文本。对应的隔离测试。
+ *
+ * @author lhy
+ */
 import { afterEach, expect, it } from "vitest";
 import { language, t } from "./i18n";
 afterEach(() => {
   language.value = "zh-CN";
 });
+/**
+ * 验证四种语言切换与文案参数插值。
+ *
+ * @author lhy
+ */
 it("switches interface text and interpolates values for all four languages", () => {
   const labels = [];
   for (const locale of ["zh-CN", "zh-TW", "en", "ja"] as const) {

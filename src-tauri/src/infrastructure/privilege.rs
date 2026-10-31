@@ -1,9 +1,18 @@
+//! 管理员权限校验与受控提权重启。
+//!
+//! # 作者
+//! lhy
+
 use crate::domain::AppResult;
 use windows::Win32::{
     Foundation::{CloseHandle, HANDLE},
     Security::{GetTokenInformation, TokenElevation, TOKEN_ELEVATION, TOKEN_QUERY},
     System::Threading::{GetCurrentProcess, OpenProcessToken},
 };
+/// 读取进程令牌，普通权限时返回约定的提权标识。
+///
+/// # 作者
+/// lhy
 pub fn require_admin() -> AppResult<()> {
     unsafe {
         let mut token = HANDLE::default();
@@ -27,6 +36,19 @@ pub fn require_admin() -> AppResult<()> {
     Ok(())
 }
 
+/// 保存有效配置，通过 Windows UAC 启动当前程序的管理员实例。
+///
+/// 取消 UAC 时保留原窗口；授权重启不自动执行先前失败的操作。
+///
+/// # 参数
+/// - `config`：可选的完整配置，存在时先校验并保存。
+/// - `app`：当前桌面应用句柄。
+///
+/// # 错误
+/// 配置无效、无法启动管理员实例或用户取消授权时返回错误；取消使用约定标识。
+///
+/// # 作者
+/// lhy
 #[tauri::command]
 pub async fn restart_as_admin(
     config: Option<crate::domain::Config>,
@@ -75,7 +97,7 @@ pub async fn restart_as_admin(
                 {
                     use tauri::Manager;
                     use windows::Win32::System::Threading::{WaitForSingleObject, INFINITE};
-                    // Keep the CLI-owned Vite service alive until the elevated debug app exits.
+                    // 保留原开发进程以维持 Vite 服务，直到管理员开发实例退出。
                     if let Some(window) = app.get_webview_window("main") {
                         let _ = window.hide();
                     }

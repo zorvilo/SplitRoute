@@ -1,5 +1,15 @@
+/**
+ * 根据网卡 IPv4 地址推导完整私有地址范围。对应的隔离测试。
+ *
+ * @author lhy
+ */
 import { expect, it } from "vitest";
 import { privateNetworkFromAddress } from "./subnet";
+/**
+ * 验证私有 IPv4 地址到完整私有范围的映射。
+ *
+ * @author lhy
+ */
 it("maps private IPv4 addresses to their full private ranges", () => {
   for (const [address, network] of [
     ["172.16.0.1/24", "172.16.0.0/12"],

@@ -9,8 +9,8 @@
     "build": "vue-tsc --noEmit && vite build",
     "tauri": "tauri",
     "test": "vitest run",
-    "format": "prettier --write frontend index.html package.json tsconfig.json vite.config.ts src-tauri/*.json src-tauri/capabilities/*.json docs README.md .github",
-    "format:check": "prettier --check frontend index.html package.json tsconfig.json vite.config.ts src-tauri/*.json src-tauri/capabilities/*.json docs README.md .github"
+    "format": "prettier --write frontend index.html package.json tsconfig.json vite.config.ts src-tauri/*.json src-tauri/capabilities/*.json README.md README.en.md .github",
+    "format:check": "prettier --check frontend index.html package.json tsconfig.json vite.config.ts src-tauri/*.json src-tauri/capabilities/*.json README.md README.en.md .github"
   },
   "dependencies": {
     "@tauri-apps/api": "^2",

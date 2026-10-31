@@ -6,7 +6,7 @@ A lightweight Windows dual-adapter routing tool for using a private network and 
 
 [Download v1.0.0](https://github.com/zorvilo/SplitRoute/releases/tag/v1.0.0) · [Quick start](#quick-start) · [Network behavior](#network-behavior) · [Report an issue](https://github.com/zorvilo/SplitRoute/issues)
 
-![SplitRoute routing configuration](docs/images/routing.png)
+![SplitRoute routing configuration](assets/images/routing-en.png)
 
 ## Use cases
 
@@ -58,7 +58,7 @@ Automatic mode uses the selected adapter's first IPv4 address to identify these 
 
 The page reads routes when opened and can show relevant routes or all IPv4 routes. Successful reads update the table and timestamp without repeated success notifications.
 
-![Routes page](docs/images/routes.png)
+![Routes page](assets/images/routes-en.png)
 
 </details>
 
@@ -69,7 +69,7 @@ Choose the UI language and light, dark or system theme. Valid settings are saved
 
 Close to tray is enabled on first use; launch at login is disabled. Saved user choices are preserved.
 
-![General settings](docs/images/settings.png)
+![General settings](assets/images/settings-en.png)
 
 </details>
 
@@ -78,11 +78,11 @@ Close to tray is enabled on first use; launch at login is disabled. Saved user c
 
 View the version, open the project page, report issues or check for updates manually. Updates are not downloaded or installed automatically; a release-page link is offered when an update is available.
 
-![About page](docs/images/about.png)
+![About page](assets/images/about-en.png)
 
 </details>
 
-These development screenshots show the Chinese UI, with some addresses obscured. Adapter names, gateways and routes belong to the demonstration environment; do not copy them into your own configuration. The General screenshot does not show the Connectivity checks group farther down the page.
+These screenshots show the English UI. Window titles and adapter names may remain in the system language; some addresses are obscured. Adapter names, gateways and routes belong to the demonstration environment; do not copy them into your own configuration. The General screenshot does not show the Connectivity checks group farther down the page.
 
 ## Network behavior
 
@@ -156,7 +156,7 @@ cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings
 cargo test --manifest-path src-tauri/Cargo.toml
 ```
 
-Automated tests do not modify real routes or register login startup tasks. They do not replace real-world checks of dual adapters, IP changes, undo, reboot, tray behavior, UAC or Windows DPI. See the [UI acceptance record (Chinese)](docs/ui-acceptance.md) for documented layout checks.
+Automated tests do not modify real routes or register login startup tasks. They do not replace real-world checks of dual adapters, IP changes, undo, reboot, tray behavior, UAC or Windows DPI. Layout checks do not replace testing at actual Windows DPI settings.
 
 ### Build
 
@@ -191,8 +191,6 @@ src-tauri/src/
   infrastructure/      Windows networking, permissions, storage, startup and updates
   main.rs              Dependency wiring and startup
 ```
-
-See the [architecture guide (Chinese)](docs/architecture.md).
 
 ## Feedback
 

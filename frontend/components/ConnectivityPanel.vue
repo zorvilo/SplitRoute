@@ -1,4 +1,10 @@
 <script setup lang="ts">
+/**
+ * 内外网延迟曲线与探测状态展示组件。
+ *
+ * @author lhy
+ */
+
 import { computed, ref, watch, onUnmounted } from "vue";
 import { Activity, RefreshCw, Cable, Globe2 } from "lucide-vue-next";
 import { type Config } from "../api";
@@ -11,7 +17,10 @@ import {
 } from "../connectivity";
 import { t } from "../i18n";
 import { preferences } from "../composables/usePreferences";
-const props = defineProps<{ config: Config }>();
+const props = defineProps<{
+  /** 当前分流配置。 */
+  config: Config;
+}>();
 const { report, history, probing, failure, sample } = useConnectivity(() => ({
   internalId: props.config.internalId,
   internalGateway:
@@ -50,6 +59,11 @@ watch(
 );
 onUnmounted(() => animation?.cancel());
 const manualRefreshing = ref(false);
+/**
+ * 执行手动连通检测，并独立控制刷新图标动画。
+ *
+ * @author lhy
+ */
 async function refreshManually() {
   manualRefreshing.value = true;
   try {
@@ -68,6 +82,13 @@ const paths = computed(() => ({
     ceiling.value,
   ),
 }));
+/**
+ * 将探测结果转为界面文本，零毫秒显示为小于一毫秒。
+ *
+ * @param kind 出口角色或通知类型
+ * @returns 延迟或状态文本
+ * @author lhy
+ */
 function label(kind: "internal" | "external") {
   const result = report.value[kind];
   return result.status === "reachable"

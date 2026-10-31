@@ -1,4 +1,10 @@
 <script setup lang="ts">
+/**
+ * 通用偏好、检测目标及关于信息页面。
+ *
+ * @author lhy
+ */
+
 import { notify } from "../notifications";
 import { ref, watch } from "vue";
 import { isTauri } from "@tauri-apps/api/core";
@@ -38,6 +44,13 @@ watch(preferences, (p) => {
   internalTarget.value = p.internalProbeTarget;
   externalTarget.value = p.externalProbeTarget;
 });
+/**
+ * 校验编辑后的 IPv4 目标并提交保存，内网空值表示使用网关。
+ *
+ * @param field 需要保存的检测目标字段
+ * @param text 待校验地址或通知内容
+ * @author lhy
+ */
 function saveTarget(
   field: "internalProbeTarget" | "externalProbeTarget",
   text: string,
@@ -63,6 +76,12 @@ const languages: [Language, string][] = [
   ["en", "English"],
   ["ja", "日本語"],
 ];
+/**
+ * 打开固定项目链接，浏览器预览或打开失败时显示错误通知。
+ *
+ * @param target 固定链接标识或检测目标地址
+ * @author lhy
+ */
 async function link(
   target: "github" | "website" | "changelog" | "download" | "issues",
 ) {
@@ -74,6 +93,11 @@ async function link(
     notify(updateError.value, "error");
   }
 }
+/**
+ * 执行手动更新检查并提供必要的下载入口。
+ *
+ * @author lhy
+ */
 async function check() {
   checking.value = true;
   updateError.value = "";
@@ -89,6 +113,11 @@ async function check() {
       update.value.available
         ? {
             label: t("download"),
+            /**
+             * 执行用户点击下载通知后打开发布页的操作。
+             *
+             * @author lhy
+             */
             run: () => {
               void link("download");
             },

@@ -1,4 +1,10 @@
 <script setup lang="ts">
+/**
+ * 网络接口选择组件，保留不可用接口的原名称与状态。
+ *
+ * @author lhy
+ */
+
 import {
   SelectRoot,
   SelectTrigger,
@@ -16,13 +22,21 @@ import { Check, ChevronDown } from "lucide-vue-next";
 import { computed } from "vue";
 import type { Adapter } from "../api";
 const props = defineProps<{
+  /** 当前选中的接口标识。 */
   modelValue: string;
+  /** 当前可用接口列表。 */
   adapters: Adapter[];
+  /** 控件或操作按钮的显示文本。 */
   label: string;
+  /** 是否禁止当前控件操作。 */
   disabled?: boolean;
+  /** 接口不可用时保留的原名称。 */
   offlineName?: string;
 }>();
-const emit = defineEmits<{ "update:modelValue": [value: string] }>();
+const emit = defineEmits<{
+  /** 请求更新当前选中的接口。 */
+  "update:modelValue": [value: string];
+}>();
 const selected = computed(() =>
   props.adapters.find((adapter) => adapter.id === props.modelValue),
 );
