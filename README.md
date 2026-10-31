@@ -2,9 +2,9 @@
 
 轻量的 Windows 双网卡分流工具，让内网业务与互联网各走其道。
 
-通过图形界面选择内外网出口、配置内网网段，查看实际路由，并在网络变化时得到提醒。
+**简体中文** | [English](README.en.md)
 
-[快速开始](#快速开始) · [网络行为](#网络行为) · [常见问题](#常见问题) · [开发指南](#开发指南) · [反馈问题](https://github.com/zorvilo/SplitRoute/issues)
+[下载 v1.0.0](https://github.com/zorvilo/SplitRoute/releases/tag/v1.0.0) · [快速开始](#快速开始) · [网络行为](#网络行为) · [反馈问题](https://github.com/zorvilo/SplitRoute/issues)
 
 ![SplitRoute 分流配置界面](docs/images/routing.png)
 
@@ -53,13 +53,17 @@ SplitRoute 将指定 IPv4 网段交给内网出口，其余 IPv4 流量默认交
 
 ## 界面预览
 
-### 当前路由
+<details>
+<summary>当前路由</summary>
 
 进入页面自动读取，支持相关路由和全部 IPv4 路由筛选。切换或刷新成功时更新表格与读取时间，不重复弹成功通知。
 
 ![当前路由界面](docs/images/routes.png)
 
-### 通用设置
+</details>
+
+<details>
+<summary>通用设置</summary>
 
 支持简体中文、繁體中文、English、日本語，以及浅色、深色、跟随系统。设置有效后自动保存。
 
@@ -67,11 +71,16 @@ SplitRoute 将指定 IPv4 网段交给内网出口，其余 IPv4 流量默认交
 
 ![通用设置界面](docs/images/settings.png)
 
-### 关于
+</details>
+
+<details>
+<summary>关于</summary>
 
 查看版本、访问项目主页、反馈问题或手动检查更新。检查更新不会自动下载安装，发现新版后提供发布页入口。
 
 ![关于界面](docs/images/about.png)
+
+</details>
 
 以上为开发版截图，部分地址已遮挡；截图中的网卡、网关和路由是展示环境，不应照抄为自己的配置。通用设置截图未展示下方“连通检测”分组。
 
