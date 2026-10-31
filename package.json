@@ -1,0 +1,30 @@
+{
+  "name": "splitroute",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "desktop": "tauri dev",
+    "build": "vue-tsc --noEmit && vite build",
+    "tauri": "tauri",
+    "test": "vitest run",
+    "format": "prettier --write frontend index.html package.json tsconfig.json vite.config.ts src-tauri/*.json src-tauri/capabilities/*.json docs README.md .github",
+    "format:check": "prettier --check frontend index.html package.json tsconfig.json vite.config.ts src-tauri/*.json src-tauri/capabilities/*.json docs README.md .github"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2",
+    "lucide-vue-next": "^0.468",
+    "reka-ui": "^2",
+    "vue": "^3.5"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2",
+    "@vitejs/plugin-vue": "^6",
+    "prettier": "^3.9.10",
+    "typescript": "~5.9.0",
+    "vite": "^7",
+    "vitest": "^3",
+    "vue-tsc": "^3"
+  }
+}
