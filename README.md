@@ -4,7 +4,7 @@
 
 **简体中文** | [English](README.en.md)
 
-[下载 v1.0.0](https://github.com/zorvilo/SplitRoute/releases/tag/v1.0.0) · [快速开始](#快速开始) · [网络行为](#网络行为) · [反馈问题](https://github.com/zorvilo/SplitRoute/issues)
+[下载 v1.0.1](https://github.com/zorvilo/SplitRoute/releases/tag/v1.0.1) · [快速开始](#快速开始) · [网络行为](#网络行为) · [反馈问题](https://github.com/zorvilo/SplitRoute/issues)
 
 ![SplitRoute 分流配置界面](assets/images/routing.png)
 
@@ -28,7 +28,7 @@ SplitRoute 将指定 IPv4 网段交给内网出口，其余 IPv4 流量默认交
 
 ## 下载与运行环境
 
-当前版本为 **1.0.0**。前往 [下载页面](https://github.com/zorvilo/SplitRoute/releases/tag/v1.0.0) 获取 Windows x64 安装包或直接运行版，也可按照下方[开发指南](#开发指南)从源码运行。
+当前版本为 **1.0.1**。前往 [下载页面](https://github.com/zorvilo/SplitRoute/releases/tag/v1.0.1) 获取 Windows x64 安装包或直接运行版，也可按照下方[开发指南](#开发指南)从源码运行。
 
 后续发布可在 [GitHub Releases](https://github.com/zorvilo/SplitRoute/releases) 查看。不要将开发目录中的 EXE 单独复制到其他电脑使用，它依赖本地开发服务。
 
@@ -67,7 +67,7 @@ SplitRoute 将指定 IPv4 网段交给内网出口，其余 IPv4 流量默认交
 
 支持简体中文、繁體中文、English、日本語，以及浅色、深色、跟随系统。设置有效后自动保存。
 
-首次运行默认开启“关闭时最小化到托盘”，开机启动默认关闭。已有保存的选择不会被默认值覆盖。
+首次点击关闭按钮时，可选择隐藏到托盘或退出程序。勾选“记住我的选择”后，下次会直接执行。可在「设置 → 通用」中更改关闭方式。开机启动默认关闭。
 
 ![通用设置界面](assets/images/settings.png)
 
@@ -88,7 +88,7 @@ SplitRoute 将指定 IPv4 网段交给内网出口，其余 IPv4 流量默认交
 
 | 问题                       | 行为                                                                                                            |
 | -------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| 关闭软件会恢复网络吗？     | 不会。退出应用不会撤销已经写入的临时路由；首次运行默认点 × 隐藏到托盘，彻底退出使用托盘菜单。                   |
+| 关闭软件会恢复网络吗？     | 不会。已写入的临时路由在退出应用后仍然生效。需要撤销时，请先点击“撤销本次修改”。                                |
 | 重启电脑后还生效吗？       | 软件不写入持久路由。重启后由 Windows 和其他网络软件重新建立路由，需重新检查并按需启用；不会自动重放旧撤销记录。 |
 | 再次打开如何判断状态？     | 重新读取实际网卡和路由，不仅依赖“曾经启用”的记录。                                                              |
 | 撤销会恢复所有网络设置吗？ | 只撤销本次开机中记录的修改，不是全系统网络重置。网卡、IP、网关或相关路由变化时可能停止撤销，避免覆盖其他修改。  |
@@ -168,7 +168,7 @@ npm run tauri -- build
 
 - 程序：`src-tauri/target/release/splitroute.exe`
 - 安装包：`src-tauri/target/release/bundle/nsis/`
-- 正式版启动时请求管理员权限；当前版本号保持 `1.0.0`。
+- 正式版启动时请求管理员权限。
 
 ### 代码结构
 

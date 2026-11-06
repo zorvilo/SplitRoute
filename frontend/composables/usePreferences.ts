@@ -11,7 +11,7 @@ import { language, t } from "../i18n";
 const defaults: Preferences = {
   language: "zh-CN",
   theme: "system",
-  closeToTray: true,
+  closeToTray: null,
   autoStart: false,
   internalProbeTarget: "",
   externalProbeTarget: "223.5.5.5",

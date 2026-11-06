@@ -21,8 +21,8 @@ pub struct Preferences {
     pub language: String,
     /// 浅色、深色或跟随系统的主题选项。
     pub theme: String,
-    /// 关闭窗口时是否隐藏到托盘。
-    pub close_to_tray: bool,
+    /// 关闭窗口时是否隐藏到托盘，空值表示每次询问。
+    pub close_to_tray: Option<bool>,
     /// 是否在当前用户登录后启动软件。
     pub auto_start: bool,
     /// 自定义内网检测目标；空字符串表示使用网关。
@@ -40,7 +40,7 @@ fn default_external_target() -> String {
     "223.5.5.5".into()
 }
 impl Default for Preferences {
-    /// 构造首次运行偏好，默认关闭到托盘且不启用登录启动。
+    /// 构造首次运行偏好，默认询问关闭方式且不启用登录启动。
     ///
     /// # 作者
     /// lhy
@@ -48,7 +48,7 @@ impl Default for Preferences {
         Self {
             language: "zh-CN".into(),
             theme: "system".into(),
-            close_to_tray: true,
+            close_to_tray: None,
             auto_start: false,
             internal_probe_target: String::new(),
             external_probe_target: default_external_target(),
@@ -189,7 +189,6 @@ mod tests {
     #[test]
     fn validates_probe_targets() {
         let mut p = Preferences::default();
-        assert!(p.close_to_tray);
         assert!(!p.auto_start);
         assert!(p.validate().is_ok());
         p.internal_probe_target = "10.1.2.3".into();
@@ -214,10 +213,28 @@ mod tests {
     #[test]
     fn validates_preferences() {
         let mut p = Preferences::default();
-        assert!(p.close_to_tray);
+        assert_eq!(p.close_to_tray, None);
         assert!(!p.auto_start);
         assert!(p.validate().is_ok());
         p.language = "other".into();
         assert!(p.validate().is_err());
+    }
+
+    /// 验证三种关闭方式可持久化，原有布尔设置仍保持原意。
+    ///
+    /// # 作者
+    /// lhy
+    #[test]
+    fn round_trips_close_behavior() {
+        for close_to_tray in [None, Some(true), Some(false)] {
+            let preferences = Preferences {
+                close_to_tray,
+                ..Preferences::default()
+            };
+            let json = serde_json::to_value(preferences).unwrap();
+            assert_eq!(json["closeToTray"], serde_json::json!(close_to_tray));
+            let saved: Preferences = serde_json::from_value(json).unwrap();
+            assert_eq!(saved.close_to_tray, close_to_tray);
+        }
     }
 }

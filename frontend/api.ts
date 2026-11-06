@@ -87,8 +87,8 @@ export interface Preferences {
   language: Language;
   /** 浅色、深色或跟随系统的主题。 */
   theme: "light" | "dark" | "system";
-  /** 关闭窗口时是否隐藏到托盘。 */
-  closeToTray: boolean;
+  /** 关闭窗口时是否隐藏到托盘，空值表示每次询问。 */
+  closeToTray: boolean | null;
   /** 是否在用户登录 Windows 后启动软件。 */
   autoStart: boolean;
   /** 自定义内网检测目标，空字符串表示使用网关。 */
@@ -187,6 +187,13 @@ async function privilegedInvoke<T>(
   }
 }
 export const api = {
+  /**
+   * 执行关闭选择，按需保存为默认行为。
+   *
+   * @author lhy
+   */
+  finishWindowClose: (toTray: boolean, remember: boolean) =>
+    invoke<void>("finish_window_close", { toTray, remember }),
   /**
    * 请求后端保存有效配置并通过系统授权重启，不自动执行路由操作。
    *

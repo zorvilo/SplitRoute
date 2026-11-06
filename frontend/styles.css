@@ -1444,6 +1444,85 @@ footer {
   gap: 10px;
   margin-top: 20px;
 }
+.close-prompt {
+  width: min(334px, calc(100vw - var(--sidebar-width) - 32px));
+  padding: 16px;
+  outline: none;
+}
+.close-prompt-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+.close-prompt-header .about-dismiss {
+  margin-left: auto;
+}
+.close-prompt-header .summary-title {
+  margin: 0 0 2px;
+  font-size: 13px;
+  font-weight: 550;
+}
+.close-prompt .summary-description {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.5;
+}
+.close-prompt-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+}
+.close-prompt .summary-actions {
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 0 auto;
+}
+.close-prompt .button {
+  min-height: 27px;
+  padding-inline: 8px;
+  border-radius: 7px;
+  font-size: 11px;
+}
+.close-prompt .primary {
+  background: color-mix(in srgb, var(--blue) 14%, var(--surface));
+  color: color-mix(in srgb, var(--blue) 65%, var(--ink));
+}
+.close-prompt .primary:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--blue) 22%, var(--surface));
+}
+.close-prompt-remember {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.close-prompt-remember label {
+  cursor: pointer;
+}
+.close-prompt-remember button {
+  display: grid;
+  place-items: center;
+  width: 17px;
+  height: 17px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: var(--field);
+  color: var(--canvas);
+}
+.close-prompt-remember button:hover:not(:disabled),
+.close-prompt-remember button[data-state="checked"] {
+  border-color: var(--blue);
+}
+.close-prompt-remember button[data-state="checked"] {
+  background: var(--blue);
+}
+.close-prompt-remember button svg {
+  display: block;
+}
 
 .network-alert {
   display: flex;

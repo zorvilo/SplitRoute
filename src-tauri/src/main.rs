@@ -28,13 +28,11 @@ fn main() {
         context.config_mut().identifier.push_str(".admin");
     }
     tauri::Builder::default()
+        .manage(desktop::MainWindowShown::default())
         .plugin(tauri_plugin_single_instance::init(|app, _, _| {
-            if let Some(w) = app.get_webview_window("main") {
-                let _ = w.show();
-                let _ = w.unminimize();
-                let _ = w.set_focus();
-            }
+            desktop::show(app);
         }))
+        .on_page_load(desktop::show_after_page_load)
         .setup(|app| {
             let journal =
                 infrastructure::storage::FileJournal::new().map_err(std::io::Error::other)?;
@@ -59,6 +57,7 @@ fn main() {
             commands::probe_connectivity,
             settings::get_preferences,
             settings::save_preferences,
+            desktop::finish_window_close,
             settings::open_project_link,
             settings::check_update
         ])

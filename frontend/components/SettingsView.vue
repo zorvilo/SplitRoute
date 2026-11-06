@@ -207,22 +207,26 @@ async function check() {
           <span />
         </button>
       </div>
-      <div class="setting-row">
-        <div class="setting-icon"><PanelBottom :size="19" /></div>
-        <div>
-          <h3>{{ t("closeToTray") }}</h3>
-          <p>{{ t("closeToTrayHelp") }}</p>
+      <div class="setting-section">
+        <div class="setting-copy">
+          <h3>{{ t("closeBehavior") }}</h3>
+          <p>{{ t("trayHint") }}</p>
         </div>
-        <button
-          class="toggle"
-          role="switch"
-          :aria-label="t('closeToTray')"
-          :aria-checked="preferences.closeToTray"
-          :disabled="settingsBusy || !isTauri()"
-          @click="updatePreferences({ closeToTray: !preferences.closeToTray })"
-        >
-          <span />
-        </button>
+        <div class="segmented" role="group" :aria-label="t('closeBehavior')">
+          <button
+            v-for="[value, label] in [
+              [null, 'askOnClose'],
+              [true, 'hideToTray'],
+              [false, 'exitProgram'],
+            ] as const"
+            :key="label"
+            :aria-pressed="preferences.closeToTray === value"
+            :disabled="settingsBusy || !isTauri()"
+            @click="updatePreferences({ closeToTray: value })"
+          >
+            {{ t(label) }}
+          </button>
+        </div>
       </div>
     </div>
     <h2 class="settings-section-title">
@@ -289,7 +293,7 @@ async function check() {
           <div class="about-logo"><ArrowRightLeft :size="30" /></div>
           <div>
             <h2>SplitRoute</h2>
-            <span class="version-badge">{{ t("version") }} v1.0.0</span>
+            <span class="version-badge">{{ t("version") }} v1.0.1</span>
           </div>
         </div>
         <button class="button secondary" :disabled="checking" @click="check">

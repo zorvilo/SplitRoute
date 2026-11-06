@@ -4,7 +4,7 @@ A lightweight Windows dual-adapter routing tool for using a private network and 
 
 [简体中文](README.md) | **English**
 
-[Download v1.0.0](https://github.com/zorvilo/SplitRoute/releases/tag/v1.0.0) · [Quick start](#quick-start) · [Network behavior](#network-behavior) · [Report an issue](https://github.com/zorvilo/SplitRoute/issues)
+[Download v1.0.1](https://github.com/zorvilo/SplitRoute/releases/tag/v1.0.1) · [Quick start](#quick-start) · [Network behavior](#network-behavior) · [Report an issue](https://github.com/zorvilo/SplitRoute/issues)
 
 ![SplitRoute routing configuration](assets/images/routing-en.png)
 
@@ -28,7 +28,7 @@ You need two usable network interfaces and correct gateway settings. SplitRoute 
 
 ## Download and requirements
 
-The current version is **1.0.0**. Get the Windows x64 installer or standalone executable from the [download page](https://github.com/zorvilo/SplitRoute/releases/tag/v1.0.0), or run from source using the [development guide](#development-guide).
+The current version is **1.0.1**. Get the Windows x64 installer or standalone executable from the [download page](https://github.com/zorvilo/SplitRoute/releases/tag/v1.0.1), or run from source using the [development guide](#development-guide).
 
 Future versions will appear in [GitHub Releases](https://github.com/zorvilo/SplitRoute/releases). Do not distribute the development EXE by itself: it depends on a local development server.
 
@@ -67,7 +67,7 @@ The page reads routes when opened and can show relevant routes or all IPv4 route
 
 Choose the UI language and light, dark or system theme. Valid settings are saved automatically.
 
-Close to tray is enabled on first use; launch at login is disabled. Saved user choices are preserved.
+The first time you click the close button, choose whether to hide to the tray or exit. Select **Remember my choice** to use that action next time. Change it any time in **Settings → General**. Launch at login is off by default.
 
 ![General settings](assets/images/settings-en.png)
 
@@ -88,7 +88,7 @@ These screenshots show the English UI. Window titles and adapter names may remai
 
 | Question                                                         | Behavior                                                                                                                                                                                                |
 | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Does closing the app restore the network?                        | No. Exiting does not undo temporary routes already applied. By default, the close button hides the app to the tray; use the tray menu to exit completely.                                               |
+| Does closing the app restore the network?                        | No. Temporary routes stay active after the app exits. To revert them, click **Undo changes** first.                                                                                                     |
 | Does routing survive a reboot?                                   | SplitRoute does not write persistent routes. Windows and other network software rebuild routes after reboot. Check again and enable routing if needed. Old undo records are not replayed automatically. |
 | How is the state determined after reopening?                     | The app reads actual adapters and routes instead of relying only on a previous enable record.                                                                                                           |
 | Does undo reset all network settings?                            | No. It only undoes changes recorded during the current Windows boot. Changes to adapters, IPs, gateways or affected routes may stop undo to avoid overwriting other modifications.                      |
@@ -168,7 +168,7 @@ npm run tauri -- build
 
 - Executable: `src-tauri/target/release/splitroute.exe`
 - Installer: `src-tauri/target/release/bundle/nsis/`
-- Production builds request administrator permission at startup. The current version is `1.0.0`.
+- Production builds request administrator permission at startup.
 
 ### Project structure
 

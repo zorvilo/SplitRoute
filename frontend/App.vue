@@ -16,6 +16,7 @@ import {
 } from "lucide-vue-next";
 import AppNotifications from "./components/AppNotifications.vue";
 import AdminPrompt from "./components/AdminPrompt.vue";
+import WindowClosePrompt from "./components/WindowClosePrompt.vue";
 import EnableSummary from "./components/EnableSummary.vue";
 import AppSidebar from "./components/AppSidebar.vue";
 import RoutesView from "./components/RoutesView.vue";
@@ -117,6 +118,7 @@ onUnmounted(() => {
 <template>
   <AppNotifications />
   <AdminPrompt :config="config" />
+  <WindowClosePrompt />
   <EnableSummary
     v-model:open="summaryOpen"
     :config="config"
